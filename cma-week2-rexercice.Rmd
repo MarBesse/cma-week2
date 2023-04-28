@@ -1,0 +1,28 @@
+---
+title: "cma-week2_exercice"
+author: "Martine Besse"
+date: "2023-04-28"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Task 1: import data
+
+```{r}
+library("readr") 
+library("sf")
+library("ggplot2")
+```
+
+
+```{r}
+#import csv
+wildschwein_BE <- read_delim("data/wildschwein_BE_2056.csv", ",")
+
+#convert to spatial object
+wildschwein_BE <- st_as_sf(wildschwein_BE, coords = c("E", "N"), crs = 2056, remove = FALSE) #remove = False so the geometry column stays
+```
+

@@ -2,4 +2,5 @@
 .Rhistory
 .RData
 .Ruserdata
-.demoscript.Rmd
+demoscript.Rmd
+data/wildschwein_BE_2056.csv

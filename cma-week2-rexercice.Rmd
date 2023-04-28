@@ -26,3 +26,95 @@ wildschwein_BE <- read_delim("data/wildschwein_BE_2056.csv", ",")
 wildschwein_BE <- st_as_sf(wildschwein_BE, coords = c("E", "N"), crs = 2056, remove = FALSE) #remove = False so the geometry column stays
 ```
 
+
+## Task 2: Getting an overview
+
+```{r}
+mutate(wildschwein_BE, timelag = as.numeric(difftime(lead(DatetimeUTC), DatetimeUTC)))
+```
+
+`r wildschwein_BE$TierName %>% unique()`
+
+```{r}
+#arrange the data
+arrange(wildschwein_BE, TierName, DatetimeUTC)
+
+```
+
+How many individuals?  `r `
+```{r}
+wildschwein_BE %>% group_by(TierName) %>% summarise(n_observations=n())
+```
+
+
+```{r}
+ggplot(wildschwein_BE, aes(DatetimeUTC, TierName)) +
+  geom_point()
+```
+
+```{r}
+wildschwein_BE <- wildschwein_BE %>%
+  group_by(TierName) %>%
+  mutate(diff_s = as.numeric(difftime(lead(DatetimeUTC), DatetimeUTC)))
+```
+
+```{r}
+ggplot(wildschwein_BE, aes(diff_s/60)) +
+  geom_histogram(bindwidth = 1) +
+  lims(x = c(0,5000/60)) +
+  scale_y_log10()
+```
+
+```{r}
+ggplot(wildschwein_BE, aes(DatetimeUTC, diff_s, colour = TierName)) +
+  geom_point()
+```
+
+Finding the sampling by changing the datetime:  
+
+```{r}
+wildschwein_BE %>%
+  filter(DatetimeUTC < "2014-08-24") %>%
+  ggplot(aes(DatetimeUTC, diff_s, colour = TierName)) +
+  geom_point() +
+  geom_line()
+```
+
+With 2014-08-24, we can see the difference between day and night pattern (wildboars sleep during the day)
+
+
+## Task 3:  Deriving movement parameters I: Speed
+
+Try the formula first:  
+```{r}
+# current location 1 and consecutive location 2
+N1 <- 1204752
+N2 <- 1204863
+E1 <- 2570409
+E2 <- 2570402
+
+#formula
+#distance from first location to second location
+sqrt((E1-E2)^2 + (N1-N2)^2)
+```
+
+Implement function in our dataframe with mutate
+```{r}
+wildschwein_BE <- wildschwein_BE %>%
+  group_by(TierName) %>%
+  mutate(steplength_m = sqrt((E-lead(E))^2 + (N-lead(N))^2))
+  
+wildschwein_BE
+```
+
+Speed:
+```{r}
+wildschwein_BE <- wildschwein_BE %>%
+  mutate(speed_ms = steplength_m/diff_s)
+```
+
+```{r}
+hist(log10(wildschwein_BE$speed_ms), 100)
+```
+
+

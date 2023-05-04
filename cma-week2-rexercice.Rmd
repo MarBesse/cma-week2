@@ -248,7 +248,9 @@ ggplot() +
   ggtitle("Comparing speeds") +
   labs(colour = "Speed m/s")
 ```
+
 ## Task 6: Add your movement data to your repository
+...
 
 
 ## Task 7: Explore your movement data

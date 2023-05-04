@@ -15,6 +15,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library("readr") 
 library("sf")
 library("ggplot2")
+library("dplyr")
 ```
 
 
@@ -23,30 +24,31 @@ library("ggplot2")
 wildschwein_BE <- read_delim("data/wildschwein_BE_2056.csv", ",")
 
 #convert to spatial object
-wildschwein_BE <- st_as_sf(wildschwein_BE, coords = c("E", "N"), crs = 2056, remove = FALSE) #remove = False so the geometry column stays
+wildschwein_BE <- st_as_sf(wildschwein_BE, coords = c("E", "N"), crs = 2056, remove = FALSE) #remove = False so the geometry column stays 
 ```
 
 
 ## Task 2: Getting an overview
-
+Calculate the time difference:  
 ```{r}
-mutate(wildschwein_BE, timelag = as.numeric(difftime(lead(DatetimeUTC), DatetimeUTC)))
+mutate(wildschwein_BE, timelag = as.numeric(difftime(lead(DatetimeUTC), DatetimeUTC))) %>% View()
 ```
-
-`r wildschwein_BE$TierName %>% unique()`
 
 ```{r}
 #arrange the data
 arrange(wildschwein_BE, TierName, DatetimeUTC)
-
 ```
 
-How many individuals?  `r `
+How many individuals were tracked?  
+`r wildschwein_BE$TierName %>% n_distinct() `
+`r wildschwein_BE$TierName %>% unique() `
 ```{r}
 wildschwein_BE %>% group_by(TierName) %>% summarise(n_observations=n())
 ```
 
-
+For how long were the individual tracked? Are there gaps? 
+Were all individuals tracked concurrently or sequentially?  
+What is the temporal sampling interval between the locations?  
 ```{r}
 ggplot(wildschwein_BE, aes(DatetimeUTC, TierName)) +
   geom_point()
@@ -104,7 +106,7 @@ wildschwein_BE <- wildschwein_BE %>%
   group_by(TierName) %>%
   mutate(steplength_m = sqrt((E-lead(E))^2 + (N-lead(N))^2))
   
-wildschwein_BE
+wildschwein_BE %>% View()
 ```
 
 Speed:
@@ -116,5 +118,13 @@ wildschwein_BE <- wildschwein_BE %>%
 ```{r}
 hist(log10(wildschwein_BE$speed_ms), 100)
 ```
+
+## Task 4: Cross-scale movement analysis
+
+
+## Task 6: Add your movement data to your repository
+
+
+## Task 7: Explore your movement data
 
 

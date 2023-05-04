@@ -120,8 +120,134 @@ hist(log10(wildschwein_BE$speed_ms), 100)
 ```
 
 ## Task 4: Cross-scale movement analysis
+```{r}
+#import csv
+caro <- read_delim("data/caro60.csv", ",")
+```
 
 
+Now manually reduce the granularity of our sampling interval by selecting every 3rd, 6th and 9th position and save the output to caro_3, caro_6,caro_9 accordingly.
+```{r}
+seq_3 <- seq(from = 1, to = nrow(caro), by = 3)
+caro_3 <- caro %>% slice(seq_3)
+
+seq_6 <- seq(from = 1, to = nrow(caro), by = 6)
+caro_6 <- caro %>% slice(seq_6)
+
+seq_9 <- seq(from = 1, to = nrow(caro), by = 9)
+caro_9 <- caro %>% slice(seq_9)
+```
+
+```{r}
+#Validation:
+nrow(caro)
+## [1] 200
+nrow(caro_3)
+## [1] 67
+nrow(caro_6)
+## [1] 34
+nrow(caro_9)
+## [1] 23
+```
+
+Now calculate timelag, steplength and speed:  
+```{r}
+#check if different individuals:
+caro %>% group_by(TierName) %>% summarise(n_observations=n())
+```
+-> only Caro.  
+
+```{r}
+#1 minute timelag
+#timelag
+caro <- mutate(caro, timelag = as.numeric(difftime(lead(DatetimeUTC), DatetimeUTC)))
+
+#steplength
+caro <- caro %>% mutate(steplength_m = sqrt((E-lead(E))^2 + (N-lead(N))^2))
+
+#speed
+caro <- caro %>% mutate(speed_ms = steplength_m/timelag)
+```
+
+```{r}
+#3 minutes timelag
+#timelag
+caro_3 <- mutate(caro_3, timelag = as.numeric(difftime(lead(DatetimeUTC), DatetimeUTC)))
+
+#steplength
+caro_3 <- caro_3 %>% mutate(steplength_m = sqrt((E-lead(E))^2 + (N-lead(N))^2))
+
+#speed
+caro_3 <- caro_3 %>% mutate(speed_ms = steplength_m/timelag)
+```
+
+```{r}
+#6 minutes timelag
+#timelag
+caro_6 <- mutate(caro_6, timelag = as.numeric(difftime(lead(DatetimeUTC), DatetimeUTC)))
+
+#steplength
+caro_6 <- caro_6 %>% mutate(steplength_m = sqrt((E-lead(E))^2 + (N-lead(N))^2))
+
+#speed
+caro_6 <- caro_6 %>% mutate(speed_ms = steplength_m/timelag)
+```
+
+```{r}
+#9 minutes timelag
+#timelag
+caro_9 <- mutate(caro_9, timelag = as.numeric(difftime(lead(DatetimeUTC), DatetimeUTC)))
+
+#steplength
+caro_9 <- caro_9 %>% mutate(steplength_m = sqrt((E-lead(E))^2 + (N-lead(N))^2))
+
+#speed
+caro_9 <- caro_9 %>% mutate(speed_ms = steplength_m/timelag)
+```
+
+Plot trajectories:  
+
+```{r}
+ggplot() +
+  geom_path(data = caro_3, aes(x = E, y = N, colour="3 minutes")) +
+  geom_point(data = caro_3, aes(x = E, y = N, colour="3 minutes"), size=2) +
+  geom_path(data = caro, aes(x = E, y = N, colour = '1 minute'), alpha = 1/2) +
+  geom_point(data = caro, aes(x = E, y = N, colour="1 minute"), size=1, alpha = 1/5) +
+  ggtitle("Comparing original with 3-minutes resampled data") +
+  labs(colour = "Trajectory")
+```
+
+```{r}
+ggplot() +
+  geom_path(data = caro_6, aes(x = E, y = N, colour="6 minutes")) +
+  geom_point(data = caro_6, aes(x = E, y = N, colour="6 minutes"), size=2) +
+  geom_path(data = caro, aes(x = E, y = N, colour = '1 minute'), alpha = 1/2) +
+  geom_point(data = caro, aes(x = E, y = N, colour="1 minute"), size=1, alpha = 1/5) +
+  ggtitle("Comparing original with 6-minutes resampled data") +
+  labs(colour = "Trajectory")
+```
+
+```{r}
+ggplot() +
+  geom_path(data = caro_9, aes(x = E, y = N, colour="9 minutes")) +
+  geom_point(data = caro_9, aes(x = E, y = N, colour="9 minutes"), size=2) +
+  geom_path(data = caro, aes(x = E, y = N, colour = '1 minute'), alpha = 1/2) +
+  geom_point(data = caro, aes(x = E, y = N, colour="1 minute"), size=1, alpha = 1/5) +
+  ggtitle("Comparing original with 9-minutes resampled data") +
+  labs(colour = "Trajectory")
+```
+
+Compare the speeds in a line plot:  
+```{r}
+ggplot() +
+  geom_path(data = caro_9, aes(x = DatetimeUTC, y = speed_ms, colour="9 minutes")) +
+  geom_path(data = caro_6, aes(x = DatetimeUTC, y = speed_ms, colour="6 minutes")) +
+  geom_path(data = caro_3, aes(x = DatetimeUTC, y = speed_ms, colour="3 minutes")) +
+  geom_path(data = caro, aes(x = DatetimeUTC, y = speed_ms, colour = '1 minute')) +
+  
+  ggtitle("Comparing speeds") +
+  labs(colour = "Speed m/s")
+```
 ## Task 6: Add your movement data to your repository
 
 

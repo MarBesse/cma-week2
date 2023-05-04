@@ -254,5 +254,28 @@ ggplot() +
 
 
 ## Task 7: Explore your movement data
+#import posmo data
+```{r}
+#import and convert to sf object
+mydata <- read_delim("data/posmo_2023-01-04T00_00_00+01_00-2023-05-04T23_59_59+02_00.csv", ",") %>% st_as_sf(coords = c("lon_x", "lat_y"), crs=2056, remove = FALSE)
+```
+
+```{r}
+#timelag
+mydata <- mutate(mydata, timelag = as.numeric(difftime(lead(datetime), datetime)))
+
+#steplength
+mydata <- mydata %>% mutate(steplength_m = sqrt((lon_x-lead(lon_x))^2 + (lat_y-lead(lat_y))^2))
+
+#speed
+mydata <- mydata %>% mutate(speed_ms = steplength_m/timelag)
+```
+
+```{r}
+ggplot() +
+  geom_path(data = mydata, aes(x = lon_x, y = lat_y), colour = 'red') +
+  ggtitle("My trajectories from starting to record data 30.03.2023 to 05.05.2023")
+```
+
 
 
